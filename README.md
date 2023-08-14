@@ -1,5 +1,5 @@
 # Phonebook_python
-This is a basic phonebook program where you can store your friends' phone numbers. The numbers and other info ate stored locally in a json file. The program allows you to
+This is a basic phonebook program where you can store your friends' phone numbers. The numbers and other info are stored locally in a json file. The program allows you to
 - [x] Add a friend,
 - [x] Add many friends in bulk,
 - [x] Add multiple numbers for a friend, 
@@ -11,4 +11,4 @@ This is a basic phonebook program where you can store your friends' phone number
 ## How to use
 To install the program, simply download `phonebook.py` in your desired directory, and run it from there.
 
-⚠️ **To run the program, you need to have `Levenshtein` and `json` modules installed. Install them using `pip install <name>` command.**
+⚠️ **To run the program, you need to have Python, and `Levenshtein`, `json` modules installed. Install Python from [here](https://www.python.org/downloads/) and the modules using `pip install <name>` command.**

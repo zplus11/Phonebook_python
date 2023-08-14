@@ -38,17 +38,21 @@ while ch.lower() != "x":
         if len(phone_dict) == 0:
             print(st2 + "No friends?" + ed)
         else:
-            max_length = max(len(str(key)) for key in phone_dict.keys()) + 5
-            print(st2 + "NAME" + " " * (max_length - 4) + "PHONE NUMBER" + ed)
+            max_length1 = max(len(str(key)) for key in phone_dict.keys()) + 5
+            max_length2 = 1*12 + 7
+            if any(isinstance(phone_dict[key][0], list) for key in phone_dict.keys()):
+                max_length2 = max(len(phone_dict[key][0]) for key in phone_dict.keys() if isinstance(phone_dict[key][0], list))*11 + 6
+            print(st2 + "NAME" + " " * (max_length1 - 3) + "PHONE NUMBER" + " " * (max_length2 - 11) + "NOTE" + ed)
             for key in sorted(list(phone_dict)):
-                name = str(key) + " " * (max_length - len(str(key)))
-                if isinstance(phone_dict[key], list):
-                    number = ", ".join(phone_dict[key])
+                name = str(key) + " " * (max_length1 - len(str(key)))
+                if isinstance(phone_dict[key][0], list):
+                    number_string = ", ".join(phone_dict[key][0])
+                    number = number_string + " " * (max_length2 - len(number_string))
                 else:
-                    number = phone_dict[key]
-                print(st + name + " " + str(number) + ed)
+                    number = phone_dict[key][0] + " " * (max_length2 - len(str(phone_dict[key][0])))
+                print(st + name + " " + str(number) + " " + phone_dict[key][1] + ed)
     elif ch == "2":
-        newfriend_name = input("Enter the name of your new friend: ").title()
+        newfriend_name = input("Enter the name of your new friend: ").title().strip()
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
         if newfriend_name in phone_dict:
@@ -61,10 +65,13 @@ while ch.lower() != "x":
             else:
                 newfriend_number = newfriend_number_in
                 newfriends_string = newfriend_number_in
-            phone_dict[newfriend_name] = newfriend_number
+            newfriend_note = input("Enter any note for them if applicable (otherwise enter na or just enter): ")
+            if newfriend_note.lower() in ["na", "n.a."] or len(newfriend_note) == 0:
+                newfriend_note = "None"
+            phone_dict[newfriend_name] = [newfriend_number, newfriend_note]
             with open("phonebank.json", "w") as file:
                 json.dump(phone_dict, file)
-            print(st2 + f"Okay, {newfriend_name} is added to the book with number/s {newfriends_string}." + ed)
+            print(st2 + f"Okay, {newfriend_name} is added to the book with number/s {newfriends_string} and note {newfriend_note}." + ed)
     elif ch == "2b":
         print("Here you can add many friends to the phonebook at bulk. First letter of each name will automatically be capitalised, rest small-cased.")
         with open("phonebank.json", "r") as file:
@@ -76,24 +83,33 @@ while ch.lower() != "x":
                 friend_names = []
                 for i in range(int(n)):
                     print(st + "Friend", str(i+1) + ed)
-                    friend_name = input("Enter their name: ").title()
-                    friend_number_in = input("Enter their number/s: ")
-                    if "," in friend_number_in:
-                        friend_number = [element.strip() for element in friend_number_in.split(",")]
+                    friend_name = input("Enter their name: ").title().strip()
+                    if friend_name in phone_dict:
+                        print(st + f"They are already present in the book. Moving forward." + ed)
                     else:
-                        friend_number = friend_number_in
-                    phone_dict[friend_name] = friend_number
-                    friend_names.append(friend_name)
-                    names_string = ", ".join(friend_names)
-                    with open("phonebank.json", "w") as file:
-                        json.dump(phone_dict, file)
-                print(st2 + f"{names_string} have been added to the phonebook!" + ed)
+                        friend_number_in = input("Enter their number/s: ")
+                        friend_note = input("Enter any note for them if applicable (otherwise enter na or just enter): ")
+                        if "," in friend_number_in:
+                            friend_number = [element.strip() for element in friend_number_in.split(",")]
+                        else:
+                            friend_number = friend_number_in
+                        if friend_note.lower() in ["na", "n.a."] or len(newfriend_note) == 0:
+                            friend_note = "None"
+                        phone_dict[friend_name] = [friend_number, friend_note]
+                        friend_names.append(friend_name)
+                        names_string = ", ".join(friend_names)
+                with open("phonebank.json", "w") as file:
+                    json.dump(phone_dict, file)
+                print(st2 + f"The following people have been added to the phonebook!" + ed)
+                for friend in friend_names:
+                    numbers_string = ", ".join(phone_dict[friend][0])
+                    print(st + f"{friend} [{phone_dict[friend][1]}]: {numbers_string}" + ed)
             else:
                 print(st2 + "Very great bud, the 0 (zero) friends you wanted added have been added to the phonebook." + ed)
         else:
             print(st2 + f"Invalid number. Search for a course on Natural Numbers." + ed)
     elif ch == "3":
-        toremove_name = input("Enter the name of the friend you want to remove: ").title()
+        toremove_name = input("Enter the name of the friend you want to remove: ").title().strip()
         if toremove_name in phone_dict:
             del phone_dict[toremove_name]
             with open("phonebank.json", "w") as file:
@@ -102,11 +118,11 @@ while ch.lower() != "x":
         else:
             print(st2 + "They are not present in the dictionary. Check for spelling errors." + ed)
     elif ch == "4":
-        edit_friend = input("Enter the name of friend to edit their number: ").title()
+        edit_friend = input("Enter the name of friend to edit their number: ").title().strip()
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
         if edit_friend in phone_dict:
-            old_number = phone_dict[edit_friend]
+            old_number = phone_dict[edit_friend][0]
             if isinstance(old_number, list):
                 oldnumbers_string = ", ".join(old_number)
             else:
@@ -118,24 +134,40 @@ while ch.lower() != "x":
             else:
                 new_number = new_number_in
                 newnumbers_string = new_number_in
-            phone_dict[edit_friend] = new_number
+            phone_dict[edit_friend][0] = new_number
             with open("phonebank.json", "w") as file:
                 json.dump(phone_dict, file)
             print(st2 + f"Okay, the number/s of {edit_friend} has been changed FROM {oldnumbers_string} TO {newnumbers_string}." + ed)
         else:
             print(st2 + "They are not present in the dictionary. Check for spelling errors." + ed)
+    elif ch == "4b":
+        edit_friend = input("Enter the name of friend to edit their note: ").title().strip()
+        with open("phonebank.json", "r") as file:
+            phone_dict = json.load(file)
+        if edit_friend in phone_dict:
+            old_note = phone_dict[edit_friend][1]
+            new_note = input("Enter a new note for them if applicable (otherwise enter na or just enter): ")
+            if new_note.lower() in ["na", "n.a."] or len(newfriend_note) == 0:
+                new_note = "None"
+            phone_dict[edit_friend][1] = new_note
+            with open("phonebank.json", "w") as file:
+                json.dump(phone_dict, file)
+            print(st2 + f"Okay, the note for {edit_friend} has been changed from {old_note} to {new_note}." + ed)
+        else:
+            print(st2 + "They are not present in the dictionary. Check for spelling errors." + ed)
     elif ch == "5":
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
-        search_name = input("Enter the name of the friend you want to search: ").title()
+        search_name = input("Enter the name of the friend you want to search: ").title().strip()
         search_result = find_closest_match(search_name, phone_dict)
-        search_number = phone_dict[search_name]
+        search_number = phone_dict[search_result][0]
+        search_note = phone_dict[search_result][1]
         if isinstance(search_number, list):
             searchnumbers_string = ", ".join(search_number)
         else:
             searchnumbers_string = search_number
-        print(st2 + f"I found {search_result} in the phonebook." + ed + st + f"\nThis is {search_result}.\nFound number/s: {searchnumbers_string}." + ed)
-        print(f"To Copy // {search_result}: {searchnumbers_string}")
+        print(st2 + f"I found {search_result} in the phonebook." + ed + st + f"\nThis is {search_result}.\nFound number/s: {searchnumbers_string}\nFound note: {search_note}." + ed)
+        print(f"To Copy // {search_result} [{search_note}]: {searchnumbers_string}")
     elif ch == "0":
         print("Welcome to dev mode. Here you can reset the phonebook and back your data up in a backup file (It will be saved in the working directory with name ""phonebank_backup.json"". Furthermore, you can also restore an already existing data.")
         print("- Enter ""RESET"" (case sensitive) to reset all of the data right now.\n- Enter ""RESTORE"" to restore the data from an existing backup file.")
@@ -177,6 +209,16 @@ while ch.lower() != "x":
                 print(st2 + "The file does not exist. Troubleshooting: Confirm path; Remember to include file extension in name; Path dummy example: ""D:\My Files\contacts_backup.json""" + ed)
         else:
             print(st2 + "Invalid choice. Can you read?" + ed)
+    elif ch == "update":
+        with open("phonebank.json", "r") as file:
+            phone_dict = json.load(file)
+        for friend in phone_dict:
+            value_in = phone_dict[friend]
+            phone_dict[friend] = [value_in, "None"]
+            print(friend, phone_dict[friend])
+        with open("phonebank.json", "w") as file:
+            json.dump(phone_dict, file)
+        print(st2 + "Updated. Thankyou for using." + ed)
     else:
         print(st2 + "Invalid choice. Refer to the guide." + ed)
     print("---------------------------X--------------X---------------------------")
