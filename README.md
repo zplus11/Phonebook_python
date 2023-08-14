@@ -1,5 +1,5 @@
 # Phonebook_python
-This is a basic phonebook program where you can store your friends' phone numbers. The program allows you to
+This is a basic phonebook program where you can store your friends' phone numbers. The numbers and other info ate stored locally in a json file. The program allows you to
 - [x] Add a friend,
 - [x] Add many friends in bulk,
 - [x] Add multiple numbers for a friend, 
