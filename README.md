@@ -7,7 +7,7 @@ This is a basic phonebook program where you can store your friends' phone number
 - [x] Edit number of a friend,
 - [x] Search for a friend's details,
 - [x] Reset your numbers (and create a backup file) or restore from an existing backup file,
-- [ ] Add notes for an existing friend.
+- [x] Add notes for an existing friend.
 ## How to use
 To install the program, simply download `phonebook.py` in your desired directory, and run it from there.
 
