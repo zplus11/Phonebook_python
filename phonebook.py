@@ -87,7 +87,7 @@ while ch.lower() != "x":
                     names_string = ", ".join(friend_names)
                     with open("phonebank.json", "w") as file:
                         json.dump(phone_dict, file)
-                print(st2 + "{names_string} have been added to the phonebook!" + ed)
+                print(st2 + f"{names_string} have been added to the phonebook!" + ed)
             else:
                 print(st2 + "Very great bud, the 0 (zero) friends you wanted added have been added to the phonebook." + ed)
         else:
@@ -180,7 +180,7 @@ while ch.lower() != "x":
     else:
         print(st2 + "Invalid choice. Refer to the guide." + ed)
     print("---------------------------X--------------X---------------------------")
-    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2a) Add friends in bulk, 3) Remove friend, 4) Edit friend, 5) Search friend, 0) Dev mode, X) End interaction.") 
+    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2b) Add friends in bulk, 3) Remove friend, 4) Edit friend, 5) Search friend, 0) Dev mode, X) End interaction.") 
     ch = input("Enter your next choice: ")
     print()
 print(st2 + "You have opted to close the phonebook. Bye!" + ed)
