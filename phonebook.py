@@ -66,7 +66,7 @@ while ch.lower() != "x":
                 newfriend_number = newfriend_number_in
                 newfriends_string = newfriend_number_in
             newfriend_note = input("Enter any note for them if applicable (otherwise enter na or just enter): ")
-            if newfriend_note.lower() in ["na", "n.a."] or len(newfriend_note) == 0:
+            if newfriend_note.lower() in ["na", "n.a.", "n/a"] or len(newfriend_note) == 0:
                 newfriend_note = "None"
             phone_dict[newfriend_name] = [newfriend_number, newfriend_note]
             with open("phonebank.json", "w") as file:
@@ -93,7 +93,7 @@ while ch.lower() != "x":
                             friend_number = [element.strip() for element in friend_number_in.split(",")]
                         else:
                             friend_number = friend_number_in
-                        if friend_note.lower() in ["na", "n.a."] or len(newfriend_note) == 0:
+                        if friend_note.lower() in ["na", "n.a.", "n/a"] or len(newfriend_note) == 0:
                             friend_note = "None"
                         phone_dict[friend_name] = [friend_number, friend_note]
                         friend_names.append(friend_name)
@@ -147,7 +147,7 @@ while ch.lower() != "x":
         if edit_friend in phone_dict:
             old_note = phone_dict[edit_friend][1]
             new_note = input("Enter a new note for them if applicable (otherwise enter na or just enter): ")
-            if new_note.lower() in ["na", "n.a."] or len(newfriend_note) == 0:
+            if new_note.lower() in ["na", "n.a.", "n/a"] or len(new_note) == 0:
                 new_note = "None"
             phone_dict[edit_friend][1] = new_note
             with open("phonebank.json", "w") as file:
