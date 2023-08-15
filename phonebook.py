@@ -211,14 +211,17 @@ while ch.lower() != "x":
             print(st2 + "Invalid choice. Can you read?" + ed)
     elif ch == "update":
         with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        for friend in phone_dict:
-            value_in = phone_dict[friend]
-            phone_dict[friend] = [value_in, "None"]
-            print(friend, phone_dict[friend])
-        with open("phonebank.json", "w") as file:
-            json.dump(phone_dict, file)
-        print(st2 + "Updated. Thankyou for using." + ed)
+                phone_dict = json.load(file)
+        if any("None" in phone_dict[item] for item in phone_dict) or len(phone_dict) == 0:
+            print(st2 + "You are up to date. Thankyou for using.")
+        else:
+            for friend in phone_dict:
+                value_in = phone_dict[friend]
+                phone_dict[friend] = [value_in, "None"]
+                print(friend, phone_dict[friend])
+            with open("phonebank.json", "w") as file:
+                json.dump(phone_dict, file)
+            print(st2 + "Updated. Thankyou for using." + ed)
     else:
         print(st2 + "Invalid choice. Refer to the guide." + ed)
     print("---------------------------X--------------X---------------------------")
