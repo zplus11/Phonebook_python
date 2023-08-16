@@ -29,7 +29,7 @@ else:
 
 print(st2 + " <<-----------------| PHONEBOOK PROGRAM |----------------->> " + ed)
 print(st + "Welcome to the program. You can keep your phone numbers here. They will be locally stored (in a newly made json file) and you can access them each time you open this file." + ed)
-print("You have the following options.\n- Enter 1 to see the phonebook.\n- Enter 2 to add a new friend.\n- Enter 2b to add many friends in bulk.\n- Enter 3 to remove a friend.\n- Enter 4 to edit number of a friend.\n- Enter 5 to see details of an existing friend.\n- Enter 0 to enter dev mode.\n- Enter X to close the menu.")
+print("You have the following options.\n- Enter 1 to see the phonebook.\n- Enter 2 to add a new friend.\n- Enter 2b to add many friends in bulk.\n- Enter 3 to remove a friend.\n- Enter 4 to edit number of a friend.\n- Enter 4b to edit note of a friend.\n- Enter 5 to see details of an existing friend.\n- Enter 0 to enter dev mode.\n- Enter X to close the menu.")
 ch = input("Enter your choice: ")
 while ch.lower() != "x":
     if ch == "1":
@@ -209,10 +209,15 @@ while ch.lower() != "x":
                 print(st2 + "The file does not exist. Troubleshooting: Confirm path; Remember to include file extension in name; Path dummy example: ""D:\My Files\contacts_backup.json""" + ed)
         else:
             print(st2 + "Invalid choice. Can you read?" + ed)
+    elif ch == "raw":
+        with open("phonebank.json", "r") as file:
+            phone_dict = json.load(file)
+        print(f"This is phonebank.json")
+        print(phone_dict)
     else:
         print(st2 + "Invalid choice. Refer to the guide." + ed)
     print("---------------------------X--------------X---------------------------")
-    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2b) Add friends in bulk, 3) Remove friend, 4) Edit friend, 5) Search friend, 0) Dev mode, X) End interaction.") 
+    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2b) Add friends in bulk, 3) Remove friend, 4) Edit number of friend, 4b) Edit note of friend, 5) Search friend, 0) Dev mode, X) End interaction.") 
     ch = input("Enter your next choice: ")
     print()
 print(st2 + "You have opted to close the phonebook. Bye!" + ed)
