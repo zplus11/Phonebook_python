@@ -10,7 +10,7 @@ This is a basic phonebook program where you can store your friends' phone number
 - [x] Add or edit notes for an existing friend.
 
 ## How to use
-To install the program, simply download `phonebook.py` in your desired directory, and run it from there.
+To install the program, navigate to your desired directory and run `git clone https://github.com/zplus11/Phonebook_python.git` in the console. Or simply download `phonebook.py` file manually and run it from there.
 
 ⚠️ **To run the program, you need to have Python, and `Levenshtein`, `json` modules installed. Install Python from [here](https://www.python.org/downloads/) and the modules using `pip install <name>` command.**
 
