@@ -207,7 +207,7 @@ while ch.lower().strip() != "x":
         else:
             print(st2 + "Invalid choice. Can you read?" + ed)
     elif ch == "+":
-        print(st2 + "Welcome to settings! Here you can customise the book according to your preferences. You have the following options:" + ed)
+        print(st + "Welcome to settings! Here you can customise the book according to your preferences. You have the following options:" + ed)
         print("- Enter 1 to change theme\n- Type 'back' to go back")
         sch = input("Enter your settings choice: ").lower().strip()
         if sch == "1":
@@ -227,6 +227,8 @@ while ch.lower().strip() != "x":
                 print(st2 + "Confirmed. The theme is changed. Hope you like it!" + ed)
             else:
                 print(st2 + "Invalid choice. Your theme stands unchanged." + ed)
+        else:
+            print(st2 + "Invalid choice." + ed)
     elif ch == "raw":
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
