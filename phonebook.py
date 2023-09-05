@@ -38,7 +38,7 @@ st = f"\033[0;3{theme}m"
 st2 = f"\033[0;4{theme};30m"
 ed = "\033[0m"
 
-colours = {"blue": "6", "green": "2", "pink": "5", "red": "1", "white": "7", "yellow": "3"}
+colours = {"blue": "6", "green": "2", "purple": "5", "red": "1", "white": "7", "yellow": "3"}
 
 print(st2 + " <<-----------------| PHONEBOOK PROGRAM |----------------->> " + ed)
 print(st + "Welcome to the program. You can keep your phone numbers here. They will be locally stored (in a newly made json file) and you can access them each time you open this file." + ed)
@@ -48,7 +48,7 @@ while ch.lower().strip() != "x":
     if ch == "1":
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
-        if len(phone_dict) == 0:
+        if len(phone_dict) == 1:
             print(st2 + "No friends?" + ed)
         else:
             max_length1 = max(len(str(key)) for key in phone_dict.keys()) + 5
@@ -172,10 +172,11 @@ while ch.lower().strip() != "x":
         if dch == "RESET":
             with open("phonebank.json", "r") as file:
                 phone_dict = json.load(file)
+            admin = phone_dict["admin"]
             with open("phonebank_backup.json", "w") as file:
                 json.dump(phone_dict, file)
             with open("phonebank.json", "w") as file:
-                json.dump({}, file)
+                json.dump({"admin": admin}, file)
             print(st2 + "All data has been reset and backup file has been created/updated. Find it in the directory of this program file." + ed)
         elif dch == "RESTORE":
             print(st + "The file must be a json file in dictionary format otherwise I don't know what will happen." + ed)
@@ -213,7 +214,7 @@ while ch.lower().strip() != "x":
         if sch == "1":
             print("You have the following theme options:")
             for colour in colours:
-                print(f"\033[0;3{colours[colour]}m This is {colour}.\033[0m")
+                print(f"\033[0;3{colours[colour]}m This is {colour}. \033[0m \033[0;4{colours[colour]};30m With {colour} background. \033[0m")
             theme_choice = input("Enter the colour name of theme you want: ").lower().strip()
             if theme_choice in colours:
                 theme_result = colours[theme_choice]
