@@ -1,5 +1,9 @@
 # Phonebook_python
-This is a basic phonebook program where you can store your friends' phone numbers. The numbers and other info are stored locally in a json file. The program allows you to
+This is a basic phonebook program where you can store your friends' phone numbers. The numbers and other info are stored locally in a json file. ANSI 8-16 colour codes are used to beautify the output. These codes are supported by most consoles.
+
+We are at version 1. Ref `versions` file.
+
+The program allows you to
 - [x] Add a friend,
 - [x] Add many friends in bulk,
 - [x] Add multiple numbers for a friend, 
@@ -8,6 +12,8 @@ This is a basic phonebook program where you can store your friends' phone number
 - [x] Search for a friend's details,
 - [x] Reset your numbers (and create a backup file) or restore from an existing backup file,
 - [x] Add or edit notes for an existing friend.
+- [x] Change colour themes of the book.
+- [ ] Change language for the program.
 
 ## How to use
 To install the program, navigate to your desired directory and run `git clone https://github.com/zplus11/Phonebook_python.git` in the console. Or simply download `phonebook.py` file manually and run it from there.
