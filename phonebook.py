@@ -27,9 +27,9 @@ if "admin" not in phone_dict:
         if not isinstance(val, list):
             val = val.split(",")
         phone_dict[key][0] = val
-        phone_dict["admin"] = {"theme": "6", "language": "english", "version": 1} # version to which the program will get updated
-        with open("phonebank.json", "w") as file:
-            json.dump(phone_dict, file)
+    phone_dict["admin"] = {"theme": "6", "language": "english", "version": 1} # version to which the program will get updated
+    with open("phonebank.json", "w") as file:
+        json.dump(phone_dict, file)
   
 with open("phonebank.json", "r") as file:
     phone_dict = json.load(file)
@@ -52,7 +52,7 @@ while ch.lower().strip() != "x":
             print(st2 + "No friends?" + ed)
         else:
             max_length1 = max(len(str(key)) for key in phone_dict.keys()) + 5
-            max_length2 = max(len(phone_dict[key]) - 1 for key in phone_dict.keys())*11 + 6
+            max_length2 = max(sum(len(number) for number in phone_dict[key][0]) + 2*len(phone_dict[key][0]) for key in phone_dict if key != "admin") + 5
             print(st2 + "NAME" + " " * (max_length1 - 3) + "PHONE NUMBER" + " " * (max_length2 - 11) + "NOTE" + ed)
             for key in sorted(list(phone_dict)):
                 if key.lower().strip() != "admin":
