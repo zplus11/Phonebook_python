@@ -2,6 +2,8 @@ from time import sleep
 import json
 import os
 import Levenshtein
+import subprocess
+from datetime import datetime
 
 def find_closest_match(search_query, contacts):
     closest_match = None
@@ -14,22 +16,13 @@ def find_closest_match(search_query, contacts):
     return closest_match
     
 if not os.path.exists("phonebank.json"):
-    empty = {"admin": {"theme": "6", "language": "english", "version": 1}} # compatible version
+    empty = {"admin": {"theme": "6", "language": "english"}}
     with open("phonebank.json", "w") as file:
         json.dump(empty, file)
     file.close()
 
 with open("phonebank.json", "r") as file:
     phone_dict = json.load(file)
-if "admin" not in phone_dict:
-    for key in phone_dict:
-        val = phone_dict[key][0]
-        if not isinstance(val, list):
-            val = val.split(",")
-        phone_dict[key][0] = val
-    phone_dict["admin"] = {"theme": "6", "language": "english", "version": 1} # version to which the program will get updated
-    with open("phonebank.json", "w") as file:
-        json.dump(phone_dict, file)
   
 with open("phonebank.json", "r") as file:
     phone_dict = json.load(file)
@@ -42,7 +35,7 @@ colours = {"blue": "6", "green": "2", "purple": "5", "red": "1", "white": "7", "
 
 print(st2 + " <<-----------------| PHONEBOOK PROGRAM |----------------->> " + ed)
 print(st + "Welcome to the program. You can keep your phone numbers here. They will be locally stored (in a newly made json file) and you can access them each time you open this file." + ed)
-print("You have the following options.\n- Enter 1 to see the phonebook.\n- Enter 2 to add a new friend.\n- Enter 2b to add many friends in bulk.\n- Enter 3 to remove a friend.\n- Enter 4 to edit number of a friend.\n- Enter 4b to edit note of a friend.\n- Enter 5 to see details of an existing friend.\n- Enter + to change your settings.\n- Enter 0 to enter dev mode.\n- Enter X to close the menu.")
+print("You have the following options.\n- Enter 1 to see the phonebook.\n- Enter 2 to add a new friend.\n- Enter 2b to add many friends in bulk.\n- Enter 3 to remove a friend.\n- Enter 4 to edit number of a friend.\n- Enter 4b to edit note of a friend.\n- Enter 5 to see details of an existing friend.\n- Enter p to generate a pdf of all phone numbers.\n- Enter + to change your settings.\n- Enter 0 to enter dev mode.\n- Enter X to close the menu.")
 ch = input("Enter your choice: ")
 while ch.lower().strip() != "x":
     if ch == "1":
@@ -52,7 +45,7 @@ while ch.lower().strip() != "x":
             print(st2 + "No friends?" + ed)
         else:
             max_length1 = max(len(str(key)) for key in phone_dict.keys()) + 5
-            max_length2 = max(sum(len(number) for number in phone_dict[key][0]) + 2*len(phone_dict[key][0]) for key in phone_dict if key != "admin") + 5
+            max_length2 = max(sum(len(number) for number in phone_dict[key][0]) + 2*len(phone_dict[key][0]) for key in phone_dict if key != "admin") + 3
             print(st2 + "NAME" + " " * (max_length1 - 3) + "PHONE NUMBER" + " " * (max_length2 - 11) + "NOTE" + ed)
             for key in sorted(list(phone_dict)):
                 if key.lower().strip() != "admin":
@@ -186,8 +179,8 @@ while ch.lower().strip() != "x":
                     phonebank_backup_dict = json.load(file)
                 with open("phonebank.json", "r") as file:
                     phonebank_existing = json.load(file)
-                updated_existing = {}
-                for item in phonebank_existing:
+                updated_existing = {"admin": {"theme": "6", "language": "english"}}
+                for item in [i for i in phonebank_existing if i != "admin"]:
                     updated_existing[item.title()] = phonebank_existing[item]
                 updated_existing.update(phonebank_backup_dict)
                 if len(phonebank_backup_dict) == 0:
@@ -217,12 +210,12 @@ while ch.lower().strip() != "x":
                 print(f"\033[0;3{colours[colour]}m This is {colour}. \033[0m \033[0;4{colours[colour]};30m With {colour} background. \033[0m")
             theme_choice = input("Enter the colour name of theme you want: ").lower().strip()
             if theme_choice in colours:
-                theme_result = colours[theme_choice]
-                st = f"\033[0;3{theme_result}m"
-                st2 = f"\033[0;4{theme_result};30m"
+                theme = colours[theme_choice]
+                st = f"\033[0;3{theme}m"
+                st2 = f"\033[0;4{theme};30m"
                 with open("phonebank.json", "r") as file:
                     phone_dict = json.load(file)
-                phone_dict["admin"]["theme"] = theme_result
+                phone_dict["admin"]["theme"] = theme
                 with open("phonebank.json", "w") as file:
                     json.dump(phone_dict, file)
                 print(st2 + "Confirmed. The theme is changed. Hope you like it!" + ed)
@@ -230,6 +223,40 @@ while ch.lower().strip() != "x":
                 print(st2 + "Invalid choice. Your theme stands unchanged." + ed)
         else:
             print(st2 + "Invalid choice." + ed)
+    elif ch == "p":
+        for col in colours:
+            if colours[col] == theme:
+                my_col = col
+        datetimestamp = str(datetime.now())
+        with open("phonebank.json", "r") as file:
+            phone_dict = json.load(file)
+        tex_source = r"\documentclass[a4paper, 11pt]{article}\usepackage[margin = 2cm]{geometry}\usepackage{xcolor,tcolorbox,hyperref}\setlength{\parindent}{0pt}\newcounter{contact}\newcommand{\contact}[3]{\stepcounter{contact}\texttt{\thecontact.} {\bfseries#1} {\itshape(#3)}. \texttt#2 \\ }\begin{document}{\bfseries Phonebook\_Python\footnote{\href{https://github.com/zplus11/Phonebook_python}{Github repository.}}\hfill Generated at\ "
+        tex_source += datetimestamp
+        tex_source += r"}\hfill\\\begin{tcolorbox}[arc=3mm,title={\bfseries MY PHONEBOOK},"
+        tex_source += f"colback={my_col}!20,colbacktitle={my_col},colframe={my_col},coltitle=black]"
+        for friend in sorted([i for i in phone_dict if i.lower() != "admin"]):
+            def clean_for_tex(string):
+                cleaned = ""
+                for i in string:
+                    if i in r"&%$#_{}~^\ ": cleaned += fr"\{i}"
+                    else: cleaned += i
+                return cleaned
+            name = clean_for_tex(friend)
+            numbers = clean_for_tex(", ".join(phone_dict[friend][0]))
+            note = clean_for_tex(phone_dict[friend][1])
+            tex_source += fr"\contact{{{name}}}{{{numbers}}}{{{note}}}"
+        tex_source += r"\vfill{\footnotesize{\thecontact} contacts in total.}\end{tcolorbox}\end{document}"
+        try:
+            with open("mybook.tex", "w") as tex:
+                tex.write(tex_source)
+            subprocess.run(["pdflatex", "mybook.tex"])
+            os.remove("mybook.aux")
+            os.remove("mybook.log")
+            os.remove("mybook.tex")
+            os.remove("mybook.out")
+            print(st2 + "Your phone numbers have been printed on mybook.pdf file!" + ed)
+        except Exception as e:
+            print("Error:", e)
     elif ch == "raw":
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
@@ -238,7 +265,7 @@ while ch.lower().strip() != "x":
     else:
         print(st2 + "Invalid choice. Refer to the guide." + ed)
     print("---------------------------X--------------X---------------------------")
-    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2b) Add friends in bulk, 3) Remove friend, 4) Edit number of friend, 4b) Edit note of friend, 5) Search friend, +) Change settings, 0) Dev mode, X) End interaction.") 
+    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2b) Add friends in bulk, 3) Remove friend, 4) Edit number of friend, 4b) Edit note of friend, 5) Search friend, p) Make pdf of phone numbers, +) Change settings, 0) Dev mode, X) End interaction.") 
     ch = input("Enter your next choice: ").lower().strip()
     print()
 print(st2 + "You have opted to close the phonebook. Bye!" + ed)

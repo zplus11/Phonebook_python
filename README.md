@@ -1,7 +1,7 @@
 # Phonebook_python
 This is a basic phonebook program where you can store your friends' phone numbers. The numbers and other info are stored locally in a json file. ANSI 8-16 colour codes are used to beautify the output. These codes are supported by most consoles.
 
-We are at version 1. Ref `versions` file.
+We are at version 2. Ref `versions.md`.
 
 The program allows you to
 - [x] Add a friend,
@@ -13,6 +13,7 @@ The program allows you to
 - [x] Reset your numbers (and create a backup file) or restore from an existing backup file,
 - [x] Add or edit notes for an existing friend.
 - [x] Change colour themes of the book.
+- [x] Extract the complete book in pdf format.
 - [ ] Change language for the program.
 
 ## How to use

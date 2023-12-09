@@ -8,3 +8,7 @@ This file contains overview of all new stuff added in each version.
 - Colour support
 - Added `admin` block for saving preferences in `phonebank.json`
 - Misc: All numbers are within lists now
+
+## Version 2 [08 Dec, 2023]
+- Added option to export book into pdf
+- Fixed some minor bugs
