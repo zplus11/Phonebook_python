@@ -14,6 +14,13 @@ def find_closest_match(search_query, contacts):
             min_distance = distance
             closest_match = contact
     return closest_match
+
+def clean_for_tex(string):
+                cleaned = ""
+                for i in string:
+                    if i in r"&%$#_{}~^\ ": cleaned += fr"\{i}"
+                    else: cleaned += i
+                return cleaned
     
 if not os.path.exists("phonebank.json"):
     empty = {"admin": {"theme": "6", "language": "english"}}
@@ -230,22 +237,15 @@ while ch.lower().strip() != "x":
         datetimestamp = str(datetime.now())
         with open("phonebank.json", "r") as file:
             phone_dict = json.load(file)
-        tex_source = r"\documentclass[a4paper, 11pt]{article}\usepackage[margin = 2cm]{geometry}\usepackage{xcolor,tcolorbox,hyperref}\setlength{\parindent}{0pt}\newcounter{contact}\newcommand{\contact}[3]{\stepcounter{contact}\texttt{\thecontact.} {\bfseries#1} {\itshape(#3)}. \texttt#2 \\ }\begin{document}{\bfseries Phonebook\_Python\footnote{\href{https://github.com/zplus11/Phonebook_python}{Github repository.}}\hfill Generated at\ "
-        tex_source += datetimestamp
-        tex_source += r"}\hfill\\\begin{tcolorbox}[arc=3mm,title={\bfseries MY PHONEBOOK},"
-        tex_source += f"colback={my_col}!20,colbacktitle={my_col},colframe={my_col},coltitle=black]"
+        tex_source = r"\documentclass[12pt,a4paper]{article}\usepackage{xcolor,geometry,hyperref}\geometry{margin=2cm}\newcounter{contact}\newcommand{\contact}[3]{\stepcounter{contact}\texttt{\thecontact.} {\bfseries#1} {\itshape(#3)}. \texttt{#2} \\ }\begin{document}\noindent"
+        tex_source += f"\\colorbox{{{my_col}}}"
+        tex_source += r"{{\Huge\bfseries MY PHONEBOOK}}\hfill{\bfseries Phonebook\_Python\footnote{\href{https://github.com/zplus11/Phonebook_python}{Github repository.}}}\hfill\\[\baselineskip]"
         for friend in sorted([i for i in phone_dict if i.lower() != "admin"]):
-            def clean_for_tex(string):
-                cleaned = ""
-                for i in string:
-                    if i in r"&%$#_{}~^\ ": cleaned += fr"\{i}"
-                    else: cleaned += i
-                return cleaned
             name = clean_for_tex(friend)
             numbers = clean_for_tex(", ".join(phone_dict[friend][0]))
             note = clean_for_tex(phone_dict[friend][1])
             tex_source += fr"\contact{{{name}}}{{{numbers}}}{{{note}}}"
-        tex_source += r"\vfill{\footnotesize{\thecontact} contacts in total.}\end{tcolorbox}\end{document}"
+        tex_source += r"\end{document}"
         try:
             with open("mybook.tex", "w") as tex:
                 tex.write(tex_source)
