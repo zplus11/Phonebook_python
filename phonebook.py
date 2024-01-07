@@ -204,7 +204,7 @@ while ch.lower().strip() != "x":
                     else:
                         print(st2 + "Data restoring cancelled." + ed)
             else:
-                print(st2 + "The file does not exist. Troubleshooting: Confirm path; Remember to include file extension in name; Path dummy example: ""D:\My Files\contacts_backup.json""" + ed)
+                print(st2 + "The file does not exist. Troubleshooting: Confirm path; Remember to include file extension in name; Path dummy example: 'D:\\My Files\\contacts_backup.json'" + ed)
         else:
             print(st2 + "Invalid choice. Can you read?" + ed)
     elif ch == "+":
