@@ -3,8 +3,25 @@ import justify
 import os
 
 
-l60 = justify.justify(60, "left")
-c100m6 = justify.justify(94, "center")
+def l60(content, width = 60):
+    lines = []
+    words = content.split(" ")
+    while words:
+        line = words[0]
+        words.pop(0)
+        while len(line) < width and words:
+            popped = words.pop(0)
+            if len(popped) > width:
+                words.insert(0, popped[0: width] + "-")
+                words.insert(1, popped[width: ])
+                break
+            if len(popped) < width - len(line):
+                line += " " + popped
+            else:
+                words.insert(0, popped)
+                break
+        if line: lines.append(line)
+    return lines
 
 class Contact:
 
@@ -22,8 +39,8 @@ class Contact:
         return self.name.upper() + "\n" \
                + "Phone.     " + ("\n" + (" "*11)).join(self.phone) + "\n" \
                + "Email.     " + ("\n" + (" "*11)).join(self.email) + "\n" \
-               + "Address.   " + ("\n" + (" "*11)).join(l60(self.address).split("\n")) + "\n" \
-               + "Note.      " + ("\n" + (" "*11)).join(l60(self.note).split("\n"))
+               + "Address.   " + ("\n" + (" "*11)).join(l60(self.address)) + "\n" \
+               + "Note.      " + ("\n" + (" "*11)).join(l60(self.note))
 
 class Book:
 
@@ -46,7 +63,7 @@ class Book:
             yield person
 
     def __str__(self):
-        return "\n".join([str(i+1) + "\t" + repr(person) for i, person in enumerate(self)])
+        return "\n".join([str(i+1) + "\t" + repr(person) for i, person in enumerate(self)]) or "No Friends?"
 
     def add(self):
         self.contacts.append(
@@ -98,7 +115,7 @@ class Book:
     def pprint(self, response):
         l = 100
         print("-"*l)
-        for line in response.split("\n"):
+        for line in l60(response, 94):
             print("|  " + line + " "*(l-6 - len(line)) + "  |")
         print("-"*l)
 
@@ -137,7 +154,7 @@ class Book:
             os.remove("Book.aux")
             os.remove("Book.log")
             os.remove("Book.tex")
-            return "Contacts are printed to " + repr(self) + ".pdf"
+            return "Contacts are printed to Book.pdf"
         except Exception as e:
             return "Error printing" + str(e)
 
@@ -155,12 +172,15 @@ class Book:
         
     
 book = Book("book.json")
-book.pprint(c100m6("WELCOME TO YOUR PHONEBOOK"))
+book.pprint(" "*34+"WELCOME TO YOUR PHONEBOOK!")
 book.menu()
 choice = input().lower().strip()
 while choice != "x":
     if choice == "1":
         print(book)
+    elif choice == "1a":
+        for p in book:
+            book.pprint(book.show(p.name))
     elif choice == "2":
         toshow = input("Enter name of the contact: ")
         book.pprint(book.show(toshow))
