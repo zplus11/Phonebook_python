@@ -12,3 +12,7 @@ This file contains overview of all new stuff added in each version.
 ## Version 2 [08 Dec, 2023]
 - Added option to export book into pdf
 - Fixed some minor bugs
+
+## Version 3 [13 June, 2024]
+- Probably the last version
+- Rewrote completely in a far better way

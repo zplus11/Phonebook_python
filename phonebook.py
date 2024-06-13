@@ -1,272 +1,187 @@
-from time import sleep
 import json
+import justify
 import os
-import Levenshtein
-import subprocess
-from datetime import datetime
 
-def find_closest_match(search_query, contacts):
-    closest_match = None
-    min_distance = float('inf')
-    for contact in contacts:
-        distance = Levenshtein.distance(search_query, contact)
-        if distance < min_distance:
-            min_distance = distance
-            closest_match = contact
-    return closest_match
 
-def clean_for_tex(string):
-                cleaned = ""
-                for i in string:
-                    if i in r"&%$#_{}~^\ ": cleaned += fr"\{i}"
-                    else: cleaned += i
-                return cleaned
+l60 = justify.justify(60, "left")
+c100m6 = justify.justify(94, "center")
+
+class Contact:
+
+    def __init__(self, name: str, phone: list[str], email: list[str], address: str, note: str):
+        self.name = name
+        self.phone = phone
+        self.email = email
+        self.address = address
+        self.note = note
+
+    def __repr__(self):
+        return self.name + " - " + self.note
+
+    def __str__(self):
+        return self.name.upper() + "\n" \
+               + "Phone.     " + ("\n" + (" "*11)).join(self.phone) + "\n" \
+               + "Email.     " + ("\n" + (" "*11)).join(self.email) + "\n" \
+               + "Address.   " + ("\n" + (" "*11)).join(l60(self.address).split("\n")) + "\n" \
+               + "Note.      " + ("\n" + (" "*11)).join(l60(self.note).split("\n"))
+
+class Book:
+
+    def __init__(self, data):
+        self.data = data
+        if not os.path.exists(data):
+            with open(data, "w") as file:
+                json.dump({"contacts": []}, file)
+        with open(data, "r") as file:
+            self.contacts = [Contact(x[0], x[1], x[2], x[3], x[4]) for x in json.load(file)["contacts"]]
+
+    def __len__(self):
+        return len(self.contacts)
     
-if not os.path.exists("phonebank.json"):
-    empty = {"admin": {"theme": "6", "language": "english"}}
-    with open("phonebank.json", "w") as file:
-        json.dump(empty, file)
-    file.close()
+    def __repr__(self):
+        return "Book("+str(len(self))+")"
 
-with open("phonebank.json", "r") as file:
-    phone_dict = json.load(file)
-  
-with open("phonebank.json", "r") as file:
-    phone_dict = json.load(file)
-theme = phone_dict["admin"]["theme"]
-st = f"\033[0;3{theme}m"
-st2 = f"\033[0;4{theme};30m"
-ed = "\033[0m"
+    def __iter__(self):
+        for person in self.contacts:
+            yield person
 
-colours = {"blue": "6", "green": "2", "purple": "5", "red": "1", "white": "7", "yellow": "3"}
+    def __str__(self):
+        return "\n".join([str(i+1) + "\t" + repr(person) for i, person in enumerate(self)])
 
-print(st2 + " <<-----------------| PHONEBOOK PROGRAM |----------------->> " + ed)
-print(st + "Welcome to the program. You can keep your phone numbers here. They will be locally stored (in a newly made json file) and you can access them each time you open this file." + ed)
-print("You have the following options.\n- Enter 1 to see the phonebook.\n- Enter 2 to add a new friend.\n- Enter 2b to add many friends in bulk.\n- Enter 3 to remove a friend.\n- Enter 4 to edit number of a friend.\n- Enter 4b to edit note of a friend.\n- Enter 5 to see details of an existing friend.\n- Enter p to generate a pdf of all phone numbers.\n- Enter + to change your settings.\n- Enter 0 to enter dev mode.\n- Enter X to close the menu.")
-ch = input("Enter your choice: ")
-while ch.lower().strip() != "x":
-    if ch == "1":
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        if len(phone_dict) == 1:
-            print(st2 + "No friends?" + ed)
+    def add(self):
+        self.contacts.append(
+            Contact(
+                input("Enter the name: ").title(),
+                [x.strip() for x in input("Enter the phone numbers (comma separated): ").split(",")],
+                [x.strip() for x in input("Enter the phone emails (comma separated): ").split(",")],
+                input("Enter the address: ") or "NA",
+                input("Enter note if any, else press return: ") or "NA"
+            )
+        )
+        return f"Successfully added to the contacts."
+
+    def remove(self, removename):
+        for p in self:
+            if p.name == removename:
+                self.contacts.remove(p)
+                return f"{p.name} was removed from the book."
+        return f"No contact named {removename} found in the book."
+
+    def edit(self, editname):
+        this = None
+        for some in self:
+            if some.name == editname:
+                this = some
+        if this is not None:
+            change = input("What to edit: name/phone/email/address/note: ")
+            to = input("Enter the replacement: ")
+            match change:
+                case "name":
+                    this.name = to.title()
+                case "phone":
+                    this.phone = [x.strip() for x in to.split(",")]
+                case "email":
+                    this.email = [x.strip() for x in to.split(",")]
+                case "address":
+                    this.address = to or "NA"
+                case "note":
+                    this.note = to or "NA"
+            return f"The required changes are made."
         else:
-            max_length1 = max(len(str(key)) for key in phone_dict.keys()) + 5
-            max_length2 = max(sum(len(number) for number in phone_dict[key][0]) + 2*len(phone_dict[key][0]) for key in phone_dict if key != "admin") + 3
-            print(st2 + "NAME" + " " * (max_length1 - 3) + "PHONE NUMBER" + " " * (max_length2 - 11) + "NOTE" + ed)
-            for key in sorted(list(phone_dict)):
-                if key.lower().strip() != "admin":
-                    name = str(key) + " " * (max_length1 - len(str(key)))
-                    number_string = ", ".join(phone_dict[key][0])
-                    number = number_string + " " * (max_length2 - len(number_string))
-                    print(st + name + " " + str(number) + " " + phone_dict[key][1] + ed)
-    elif ch == "2":
-        newfriend_name = input("Enter the name of your new friend: ").title().strip()
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        if newfriend_name in phone_dict:
-            print(st2 + "They are already present in the book." + ed)
-        elif newfriend_name.lower().strip() == "admin":
-            print(st2 + "Sorry, that name is reserved." + ed)
-        else:
-            newfriend_number_in = input("Enter their number/s (separate by comma if more than one): ")
-            newfriend_number = [element.strip() for element in newfriend_number_in.split(",")]
-            newfriends_string = ", ".join(newfriend_number)
-            newfriend_note = input("Enter any note for them if applicable (otherwise enter na or just enter): ")
-            if newfriend_note.lower() in ["na", "n.a.", "n/a"] or len(newfriend_note) == 0:
-                newfriend_note = "None"
-            phone_dict[newfriend_name] = [newfriend_number, newfriend_note]
-            with open("phonebank.json", "w") as file:
-                json.dump(phone_dict, file)
-            print(st2 + f"Okay, {newfriend_name} is added to the book with number/s {newfriends_string} and note {newfriend_note}." + ed)
-    elif ch == "2b":
-        print("Here you can add many friends to the phonebook at bulk. First letter of each name will automatically be capitalised, rest small-cased.")
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        n = input("Enter the number of friends you wish to input: ")
-        if n.isdigit():
-            if int(n) > 0:
-                print("If the friend has more than one number, then separate their numbers by a comma (,)")
-                friend_names = []
-                for i in range(int(n)):
-                    print(st + "Friend", str(i+1) + ed)
-                    friend_name = input("Enter their name: ").title().strip()
-                    if friend_name in phone_dict:
-                        print(st + f"They are already present in the book. Moving forward." + ed)
-                    elif friend_name.lower().strip() == "admin":
-                        print(st2 + "Sorry, that name is reserved." + ed)
-                    else:
-                        newfriend_number_in = input("Enter their number/s: ")
-                        newfriend_note = input("Enter any note for them if applicable (otherwise enter na or just enter): ")
-                        newfriend_number = [element.strip() for element in newfriend_number_in.split(",")]
-                        newfriends_string = ", ".join(newfriend_number)
-                        phone_dict[friend_name] = [newfriend_number, newfriend_note]
-                        friend_names.append(friend_name)
-                        names_string = ", ".join(friend_names)
-                with open("phonebank.json", "w") as file:
-                    json.dump(phone_dict, file)
-                print(st2 + f"The following people have been added to the phonebook!" + ed)
-                if len(friend_names) == 0:
-                    print(st + "None." + ed)
-                for friend in friend_names:
-                    numbers_string = ", ".join(phone_dict[friend][0])
-                    print(st + f"{friend} [{phone_dict[friend][1]}]: {numbers_string}" + ed)
-            else:
-                print(st2 + "Very great bud, the 0 (zero) friends you wanted added have been added to the phonebook." + ed)
-        else:
-            print(st2 + f"Invalid number. Search for a course on Natural Numbers." + ed)
-    elif ch == "3":
-        toremove_name = input("Enter the name of the friend you want to remove: ").title().strip()
-        if toremove_name in phone_dict and toremove_name.lower() != "admin":
-            del phone_dict[toremove_name]
-            with open("phonebank.json", "w") as file:
-                json.dump(phone_dict, file)
-            print(st2 + f"Okay, {toremove_name} has been removed from the book." + ed)
-        else:
-            print(st2 + "They are not present in the dictionary. Check for spelling errors." + ed)
-    elif ch == "4":
-        edit_friend = input("Enter the name of friend to edit their number: ").title().strip()
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        if edit_friend in phone_dict and edit_friend.lower() != "admin":
-            old_number = phone_dict[edit_friend][0]
-            oldnumbers_string = ", ".join(old_number)
-            new_number_in = input("Enter their new number/s (separate by comma if more than one): ")
-            new_number = [element.strip() for element in new_number_in.split(",")]
-            newnumbers_string = ", ".join(new_number)
-            phone_dict[edit_friend][0] = new_number
-            with open("phonebank.json", "w") as file:
-                json.dump(phone_dict, file)
-            print(st2 + f"Okay, the number/s of {edit_friend} has been changed FROM {oldnumbers_string} TO {newnumbers_string}." + ed)
-        else:
-            print(st2 + "They are not present in the dictionary. Check for spelling errors." + ed)
-    elif ch == "4b":
-        edit_friend = input("Enter the name of friend to edit their note: ").title().strip()
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        if edit_friend in phone_dict and edit_friend.lower() != "admin":
-            old_note = phone_dict[edit_friend][1]
-            new_note = input("Enter a new note for them if applicable (otherwise enter na or just enter): ")
-            if new_note.lower() in ["na", "n.a.", "n/a"] or len(new_note) == 0:
-                new_note = "None"
-            phone_dict[edit_friend][1] = new_note
-            with open("phonebank.json", "w") as file:
-                json.dump(phone_dict, file)
-            print(st2 + f"Okay, the note for {edit_friend} has been changed from {old_note} to {new_note}." + ed)
-        else:
-            print(st2 + "They are not present in the dictionary. Check for spelling errors." + ed)
-    elif ch == "5":
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        search_name = input("Enter the name of the friend you want to search: ").title().strip()
-        search_result = find_closest_match(search_name, phone_dict)
-        search_number = phone_dict[search_result][0]
-        search_note = phone_dict[search_result][1]
-        searchnumbers_string = ", ".join(search_number)
-        print(st2 + f"I found {search_result} in the phonebook." + ed + st + f"\nThis is {search_result}.\nFound number/s: {searchnumbers_string}\nFound note: {search_note}." + ed)
-        print(f"To Copy // {search_result} [{search_note}]: {searchnumbers_string}")
-    elif ch == "0":
-        print("Welcome to dev mode. Here you can reset the phonebook and back your data up in a backup file (It will be saved in the working directory with name ""phonebank_backup.json"". Furthermore, you can also restore an already existing data.")
-        print("- Enter ""RESET"" (case sensitive) to reset all of the data right now.\n- Enter ""RESTORE"" to restore the data from an existing backup file.")
-        dch = input()
-        if dch == "RESET":
-            with open("phonebank.json", "r") as file:
-                phone_dict = json.load(file)
-            admin = phone_dict["admin"]
-            with open("phonebank_backup.json", "w") as file:
-                json.dump(phone_dict, file)
-            with open("phonebank.json", "w") as file:
-                json.dump({"admin": admin}, file)
-            print(st2 + "All data has been reset and backup file has been created/updated. Find it in the directory of this program file." + ed)
-        elif dch == "RESTORE":
-            print(st + "The file must be a json file in dictionary format otherwise I don't know what will happen." + ed)
-            filepath = input("Enter the file name with extension (or path if it's not in the working directory): ")
-            if os.path.exists(f"{filepath}"):
-                with open(filepath, "r") as file:
-                    phonebank_backup_dict = json.load(file)
-                with open("phonebank.json", "r") as file:
-                    phonebank_existing = json.load(file)
-                updated_existing = {"admin": {"theme": "6", "language": "english"}}
-                for item in [i for i in phonebank_existing if i != "admin"]:
-                    updated_existing[item.title()] = phonebank_existing[item]
-                updated_existing.update(phonebank_backup_dict)
-                if len(phonebank_backup_dict) == 0:
-                    print(st2 + "Backup file is empty." + ed)
-                else:
-                    print("Do you wish to restore the following friends? y/n")
-                    print(', '.join(str(key) for key in phonebank_backup_dict))
-                    rch = input()
-                    if rch.lower() in ["y", "yes", "1"]:
-                        with open("phonebank.json", "w") as file:
-                            json.dump(updated_existing, file)
-                        file.close()
-                        print(st2 + "Data has been retrieved from the backup file. Press 1 to see your book." + ed)
-                    else:
-                        print(st2 + "Data restoring cancelled." + ed)
-            else:
-                print(st2 + "The file does not exist. Troubleshooting: Confirm path; Remember to include file extension in name; Path dummy example: 'D:\\My Files\\contacts_backup.json'" + ed)
-        else:
-            print(st2 + "Invalid choice. Can you read?" + ed)
-    elif ch == "+":
-        print(st + "Welcome to settings! Here you can customise the book according to your preferences. You have the following options:" + ed)
-        print("- Enter 1 to change theme\n- Type 'back' to go back")
-        sch = input("Enter your settings choice: ").lower().strip()
-        if sch == "1":
-            print("You have the following theme options:")
-            for colour in colours:
-                print(f"\033[0;3{colours[colour]}m This is {colour}. \033[0m \033[0;4{colours[colour]};30m With {colour} background. \033[0m")
-            theme_choice = input("Enter the colour name of theme you want: ").lower().strip()
-            if theme_choice in colours:
-                theme = colours[theme_choice]
-                st = f"\033[0;3{theme}m"
-                st2 = f"\033[0;4{theme};30m"
-                with open("phonebank.json", "r") as file:
-                    phone_dict = json.load(file)
-                phone_dict["admin"]["theme"] = theme
-                with open("phonebank.json", "w") as file:
-                    json.dump(phone_dict, file)
-                print(st2 + "Confirmed. The theme is changed. Hope you like it!" + ed)
-            else:
-                print(st2 + "Invalid choice. Your theme stands unchanged." + ed)
-        else:
-            print(st2 + "Invalid choice." + ed)
-    elif ch == "p":
-        for col in colours:
-            if colours[col] == theme:
-                my_col = col
-        datetimestamp = str(datetime.now())
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        tex_source = r"\documentclass[12pt,a4paper]{article}\usepackage{xcolor,geometry,hyperref}\geometry{margin=2cm}\newcounter{contact}\newcommand{\contact}[3]{\stepcounter{contact}\texttt{\thecontact.} {\bfseries#1} {\itshape(#3)}. \texttt{#2} \\ }\begin{document}\noindent"
-        tex_source += f"\\colorbox{{{my_col}}}"
-        tex_source += r"{{\Huge\bfseries MY PHONEBOOK}}\hfill{\bfseries Phonebook\_Python\footnote{\href{https://github.com/zplus11/Phonebook_python}{Github repository.}}}\hfill\\[\baselineskip]"
-        for friend in sorted([i for i in phone_dict if i.lower() != "admin"]):
-            name = clean_for_tex(friend)
-            numbers = clean_for_tex(", ".join(phone_dict[friend][0]))
-            note = clean_for_tex(phone_dict[friend][1])
-            tex_source += fr"\contact{{{name}}}{{{numbers}}}{{{note}}}"
-        tex_source += r"\end{document}"
+            return f"No contact named {editname} found in the book." 
+
+    def show(self, findname):
+        for p in self:
+            if p.name == findname: return str(p)
+        return f"No contact named {findname} found in the book."
+
+    def pprint(self, response):
+        l = 100
+        print("-"*l)
+        for line in response.split("\n"):
+            print("|  " + line + " "*(l-6 - len(line)) + "  |")
+        print("-"*l)
+
+    def menu(self):
+        print("You have the following options:")
+        print("1   Print the complete book")
+        print("2   Show details of a contact")
+        print("3   Add a contact")
+        print("4   Remove a contact")
+        print("5   Edit a contact")
+        print("p   Print the book to PDF (requires pdflatex)")
+        print("x   Close the book (ALWAYS use this to log out)")
+        print("Type the character corresponding to your choice and hit enter.")
+
+    def invalid(self):
+        return "Invalid choice."
+
+    def pdf(self):
+        with open("Book.tex", "w") as file:
+            file.write(
+                "\\documentclass{article}\\usepackage[margin=1in]{geometry}\\newcommand\\contact[5]{\\vskip10pt{\\bf\\MakeUppercase{#1}}\\par\\vskip4pt" \
+                "\\parbox[t]{.2\\linewidth}{{\\bf Phone.}} \\parbox[t]{.7\\linewidth}{#2} \\par\\vskip5pt" \
+                "\\parbox[t]{.2\\linewidth}{{\\bf Email.}} \\parbox[t]{.7\\linewidth}{#3} \\par\\vskip5pt" \
+                "\\parbox[t]{.2\\linewidth}{{\\bf Address.}} \\parbox[t]{.7\\linewidth}{#4} \\par\\vskip5pt" \
+                "\\parbox[t]{.2\\linewidth}{{\\bf Note.}} \\parbox[t]{.7\\linewidth}{#5}}\\usepackage[utf8]{inputenc}\\begin{document}"
+            )
+            for p in self:
+                file.write("\\contact{" \
+                           + "}{".join([p.name, ", ".join(p.phone), ", ".join(p.email), self.clean(p.address), self.clean(p.note)]) \
+                           + "}"
+                )
+            file.write("\\end{document}")
+        import subprocess
         try:
-            with open("mybook.tex", "w") as tex:
-                tex.write(tex_source)
-            subprocess.run(["pdflatex", "mybook.tex"])
-            os.remove("mybook.aux")
-            os.remove("mybook.log")
-            os.remove("mybook.tex")
-            os.remove("mybook.out")
-            print(st2 + "Your phone numbers have been printed on mybook.pdf file!" + ed)
+            subprocess.run(["pdflatex", "Book.tex"])
+            os.remove("Book.aux")
+            os.remove("Book.log")
+            os.remove("Book.tex")
+            return "Contacts are printed to " + repr(self) + ".pdf"
         except Exception as e:
-            print("Error:", e)
-    elif ch == "raw":
-        with open("phonebank.json", "r") as file:
-            phone_dict = json.load(file)
-        print(f"This is phonebank.json")
-        print(phone_dict)
+            return "Error printing" + str(e)
+
+    def clean(self, string):
+        cleaned = ""
+        for i in string:
+            if i in r"&%$#_{}~\^": cleaned += fr"\{i}"
+            else: cleaned += i
+        return cleaned
+
+    def quit(self):
+        to_export = [(person.name, person.phone, person.email, person.address, person.note) for person in self.contacts]
+        with open(self.data, "w") as file:
+            json.dump({"contacts": to_export}, file)
+        
+    
+book = Book("book.json")
+book.pprint(c100m6("WELCOME TO YOUR PHONEBOOK"))
+book.menu()
+choice = input().lower().strip()
+while choice != "x":
+    if choice == "1":
+        print(book)
+    elif choice == "2":
+        toshow = input("Enter name of the contact: ")
+        book.pprint(book.show(toshow))
+        del toshow
+    elif choice == "3":
+        book.pprint(book.add())
+    elif choice == "4":
+        toremove = input("Enter name of the contact: ")
+        book.pprint(book.remove(toremove))
+        del toremove
+    elif choice == "5":
+        toedit = input("Enter name of the contact: ")
+        book.pprint(book.edit(toedit))
+        del toedit
+    elif choice == "p":
+        book.pprint(book.pdf())
+    elif choice == "x":
+        break
     else:
-        print(st2 + "Invalid choice. Refer to the guide." + ed)
-    print("---------------------------X--------------X---------------------------")
-    print("Task completed. Want to do another task? Same guide applies. 1) See book, 2) Add friend, 2b) Add friends in bulk, 3) Remove friend, 4) Edit number of friend, 4b) Edit note of friend, 5) Search friend, p) Make pdf of phone numbers, +) Change settings, 0) Dev mode, X) End interaction.") 
-    ch = input("Enter your next choice: ").lower().strip()
+        book.pprint(book.invalid())
     print()
-print(st2 + "You have opted to close the phonebook. Bye!" + ed)
-sleep(2)
+    book.menu()
+    choice = input().lower().strip()
+book.quit()
