@@ -46,6 +46,7 @@ class Book:
 
     def __init__(self, data):
         self.data = data
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
         if not os.path.exists(data):
             with open(data, "w") as file:
                 json.dump({"contacts": []}, file)
@@ -103,6 +104,8 @@ class Book:
                     this.address = to or "NA"
                 case "note":
                     this.note = to or "NA"
+                case _:
+                    return f"Invalid change demanded."
             return f"The required changes are made."
         else:
             return f"No contact named {editname} found in the book." 
@@ -115,7 +118,7 @@ class Book:
     def pprint(self, response):
         l = 100
         print("-"*l)
-        for line in l60(response, 94):
+        for line in response.split("\n"):
             print("|  " + line + " "*(l-6 - len(line)) + "  |")
         print("-"*l)
 
@@ -156,7 +159,7 @@ class Book:
             os.remove("Book.tex")
             return "Contacts are printed to Book.pdf"
         except Exception as e:
-            return "Error printing" + str(e)
+            return "\n".join(l60("Error printing: " + str(e)))
 
     def clean(self, string):
         cleaned = ""
